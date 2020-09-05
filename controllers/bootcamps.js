@@ -1,4 +1,5 @@
 const Bootcamp = require("../models/Bookcamp");
+const ErrorResponse = require("../utils/errorResponse");
 
 //@desc   Get all bootcamps
 //@route  GET /api/v1/bootcamps
@@ -9,9 +10,9 @@ exports.getBootcamps = async (req, res, next) => {
     res
       .status(200)
       .json({ sucess: true, count: bookcamps.length, data: bookcamps });
-  } catch (error) {
+  } catch (err) {
     //but this is mostly a server error
-    res.status(400).json({ sucess: false });
+    next(err);
   }
 };
 
@@ -23,13 +24,14 @@ exports.getBootcamp = async (req, res, next) => {
     const bootcamp = await Bootcamp.findById(req.params.id);
 
     if (!bootcamp) {
-      return res.status(400).json({ sucess: false });
+      //if it a properly formated object id but the bootcamp is not in the database
+      return next(err);
     }
 
     res.status(200).json({ sucess: true, data: bootcamp });
-  } catch (error) {
-    // res.status(500).json({ sucess: false });
-    next(error);
+  } catch (err) {
+    //if it is not a properly formated object id
+    next(err);
   }
 };
 
@@ -40,8 +42,8 @@ exports.createBootcamp = async (req, res, next) => {
   try {
     const bootcamp = await Bootcamp.create(req.body);
     res.status(201).json({ sucess: true, data: bootcamp });
-  } catch (error) {
-    res.status(400).json({ sucess: false });
+  } catch (err) {
+    next(err);
   }
 };
 
@@ -56,11 +58,11 @@ exports.updateBootcamp = async (req, res, next) => {
     });
 
     if (!bootcamp) {
-      return res.status(400).json({ sucess: false });
+      return next(err);
     }
     res.status(200).json({ sucess: true, data: bootcamp });
-  } catch (error) {
-    res.status(400).json({ sucess: false });
+  } catch (err) {
+    next(err);
   }
 };
 
@@ -72,10 +74,10 @@ exports.deleteBootcamp = async (req, res, next) => {
     const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id);
 
     if (!bootcamp) {
-      return res.status(400).json({ sucess: false });
+      return next(err);
     }
     res.status(200).json({ sucess: true, data: {} });
-  } catch (error) {
-    res.status(400).json({ sucess: false });
+  } catch (err) {
+    next(err);
   }
 };
