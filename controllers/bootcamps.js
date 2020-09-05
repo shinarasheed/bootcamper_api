@@ -2,7 +2,6 @@ const Bootcamp = require("../models/Bookcamp");
 const ErrorResponse = require("../utils/errorResponse");
 const asyncHandler = require("../middleware/async");
 const geocoder = require("../utils/geocoder");
-const { countDocuments } = require("../models/Bookcamp");
 
 //@desc   Get all bootcamps
 //@route  GET /api/v1/bootcamps
