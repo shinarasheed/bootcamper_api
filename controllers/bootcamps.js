@@ -9,15 +9,39 @@ const geocoder = require("../utils/geocoder");
 exports.getBootcamps = asyncHandler(async (req, res, next) => {
   let query;
 
-  let queryStr = JSON.stringify(req.query);
+  //copy req.query
+  const reqQuery = { ...req.query };
 
+  //Field to exclude
+
+  const removeFields = ["select"];
+
+  //loop over removeFields and delete them from reqQuery
+
+  removeFields.forEach((param) => delete reqQuery[param]);
+
+  //create query string
+  let queryStr = JSON.stringify(reqQuery);
+
+  //create operators
   queryStr = queryStr.replace(
     /\b(gt|gte|lt|lte|in)\b/g,
     (match) => `$${match}`
   );
 
+  //finding resource
   query = Bootcamp.find(JSON.parse(queryStr));
 
+  //SELECT FIELDS
+  if (req.query.select) {
+    const fields = req.query.select.split(",").join(" ");
+    query = query.select(fields);
+
+    //why not just map through the array of bootacamps on the frontend and return a new
+    //array containing only the names
+  }
+
+  //executing query
   const bookcamps = await query;
   res
     .status(200)
