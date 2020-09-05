@@ -2,6 +2,7 @@ const Bootcamp = require("../models/Bookcamp");
 const ErrorResponse = require("../utils/errorResponse");
 const asyncHandler = require("../middleware/async");
 const geocoder = require("../utils/geocoder");
+const { countDocuments } = require("../models/Bookcamp");
 
 //@desc   Get all bootcamps
 //@route  GET /api/v1/bootcamps
@@ -14,7 +15,7 @@ exports.getBootcamps = asyncHandler(async (req, res, next) => {
 
   //Field to exclude
 
-  const removeFields = ["select", "sort"];
+  const removeFields = ["select", "sort", "page", "limit"];
 
   //loop over removeFields and delete them from reqQuery
 
@@ -51,11 +52,49 @@ exports.getBootcamps = asyncHandler(async (req, res, next) => {
     query = query.sort("-createdAt");
   }
 
+  //pagination
+  //page 1 by default
+  const page = parseInt(req.query.page, 10) || 1;
+
+  //limit is the number we want to show per page
+  const limit = parseInt(req.query.limit, 10) || 25;
+
+  //the number to skip/ leave behind
+
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+
+  // countDocuments; is a mongoose method to count all documents
+  const total = await Bootcamp.countDocuments();
+
+  query = query.skip(startIndex).limit(limit);
+
   //executing query
   const bookcamps = await query;
-  res
-    .status(200)
-    .json({ sucess: true, count: bookcamps.length, data: bookcamps });
+
+  //pagination result
+
+  const pagination = {};
+  if (endIndex < total) {
+    pagination.next = {
+      page: page + 1,
+      limit,
+    };
+  }
+
+  if (startIndex > 0) {
+    pagination.prev = {
+      page: page - 1,
+      limit,
+    };
+  }
+
+  res.status(200).json({
+    sucess: true,
+    count: bookcamps.length,
+    pagination: pagination,
+    data: bookcamps,
+  });
 });
 
 //@desc   Get all bootcamps
