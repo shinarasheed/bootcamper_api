@@ -14,7 +14,7 @@ exports.getBootcamps = asyncHandler(async (req, res, next) => {
 
   //Field to exclude
 
-  const removeFields = ["select"];
+  const removeFields = ["select", "sort"];
 
   //loop over removeFields and delete them from reqQuery
 
@@ -39,6 +39,16 @@ exports.getBootcamps = asyncHandler(async (req, res, next) => {
 
     //why not just map through the array of bootacamps on the frontend and return a new
     //array containing only the names
+  }
+
+  //sort
+
+  if (req.query.sort) {
+    const sortBy = req.query.sort.split(",").join(" ");
+    query = query.sort(sortBy);
+  } else {
+    //descending order by createdAt
+    query = query.sort("-createdAt");
   }
 
   //executing query
