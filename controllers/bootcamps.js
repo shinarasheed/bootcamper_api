@@ -6,7 +6,9 @@ const Bootcamp = require("../models/Bookcamp");
 exports.getBootcamps = async (req, res, next) => {
   try {
     const bookcamps = await Bootcamp.find();
-    res.status(200).json({ sucess: true, data: bookcamps });
+    res
+      .status(200)
+      .json({ sucess: true, count: bookcamps.length, data: bookcamps });
   } catch (error) {
     //but this is mostly a server error
     res.status(400).json({ sucess: false });
@@ -45,13 +47,34 @@ exports.createBootcamp = async (req, res, next) => {
 //@desc   Update bootcamp
 //@route  PUT /api/v1/bootcamps/:id
 //@acess  Private
-exports.updateBootcamp = (req, res, next) => {
-  res.status(200).json({ sucess: true, msg: " update a bootcamp" });
+exports.updateBootcamp = async (req, res, next) => {
+  try {
+    const bootcamp = await Bootcamp.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!bootcamp) {
+      return res.status(400).json({ sucess: false });
+    }
+    res.status(200).json({ sucess: true, data: bootcamp });
+  } catch (error) {
+    res.status(400).json({ sucess: false });
+  }
 };
 
 //@desc   Delete bootcamp
 //@route  DELETE /api/v1/bootcamps/:id
 //@acess  Private
-exports.deleteBootcamp = (req, res, next) => {
-  res.status(200).json({ sucess: true, msg: " delete a bootcamp" });
+exports.deleteBootcamp = async (req, res, next) => {
+  try {
+    const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id);
+
+    if (!bootcamp) {
+      return res.status(400).json({ sucess: false });
+    }
+    res.status(200).json({ sucess: true, data: {} });
+  } catch (error) {
+    res.status(400).json({ sucess: false });
+  }
 };
