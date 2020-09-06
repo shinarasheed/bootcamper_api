@@ -10,30 +10,18 @@ const { findByIdAndUpdate } = require("../models/Course");
 //@acess  Public
 
 exports.getCourses = asyncHandler(async (req, res, next) => {
-  let query;
-
   if (req.params.bootcampId) {
-    query = Course.find({ bootcamp: req.params.bootcampId });
-  } else {
-    //since this only returns the bootcamp id we can add
-    //more data by populate
-    //we can return all the bootcamp data or a select few
+    const courses = await Course.find({ bootcamp: req.params.bootcampId });
 
-    // query = Course.find().populate("bootcamp");
-
-    query = Course.find().populate({
-      path: "bootcamp",
-      select: "name description",
+    return res.status(200).json({
+      success: true,
+      count: courses.length,
+      data: courses,
     });
+  } else {
+    // i dont understand again
+    res.status(200).json(res.advancedResults);
   }
-
-  const courses = await query;
-
-  res.status(200).json({
-    success: true,
-    count: courses.length,
-    data: courses,
-  });
 });
 
 //@desc   Get a single courses
