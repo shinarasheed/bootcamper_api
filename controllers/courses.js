@@ -13,7 +13,16 @@ exports.getCourses = asyncHandler(async (req, res, next) => {
   if (req.params.bootcampId) {
     query = Course.find({ bootcamp: req.params.bootcampId });
   } else {
-    query = Course.find();
+    //since this only returns the bootcamp id we can add
+    //more data by populate
+    //we can return all the bootcamp data or a select few
+
+    // query = Course.find().populate("bootcamp");
+
+    query = Course.find().populate({
+      path: "bootcamp",
+      select: "name description",
+    });
   }
 
   const courses = await query;

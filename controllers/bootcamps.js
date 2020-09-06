@@ -1,4 +1,4 @@
-const Bootcamp = require("../models/Bookcamp");
+const Bootcamp = require("../models/Bootcamp");
 const ErrorResponse = require("../utils/errorResponse");
 const asyncHandler = require("../middleware/async");
 const geocoder = require("../utils/geocoder");
@@ -30,7 +30,7 @@ exports.getBootcamps = asyncHandler(async (req, res, next) => {
   );
 
   //finding resource
-  query = Bootcamp.find(JSON.parse(queryStr));
+  query = Bootcamp.find(JSON.parse(queryStr)).populate("courses");
 
   //SELECT FIELDS
   if (req.query.select) {
@@ -140,13 +140,18 @@ exports.updateBootcamp = asyncHandler(async (req, res, next) => {
 //@route  DELETE /api/v1/bootcamps/:id
 //@acess  Private
 exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
-  const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id);
+  const bootcamp = await Bootcamp.findById(req.params.id);
 
   if (!bootcamp) {
     return next(
       new ErrorResponse(`Bootcamp not found with id of ${req.params.id}`, 404)
     );
   }
+
+  //we could have just used findByIdAndDelete
+  //we did this because of the cascade thing we are doing in the bootcamp model
+  bootcamp.remove();
+
   res.status(200).json({ sucess: true, data: {} });
 });
 
