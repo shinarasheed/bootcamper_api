@@ -58,7 +58,7 @@ exports.getCourse = asyncHandler(async (req, res, next) => {
 });
 
 //@desc   POST add a course
-//@route  GET /api/v1/bootcamps/:bootcampId/courses
+//@route  POST /api/v1/bootcamps/:bootcampId/courses
 //@acess  Private
 
 exports.addCourse = asyncHandler(async (req, res, next) => {
@@ -85,7 +85,7 @@ exports.addCourse = asyncHandler(async (req, res, next) => {
 });
 
 //@desc   Update a course
-//@route  DELETE /api/v1/courses/:id
+//@route  PUT /api/v1/courses/:id
 //@acess  Private
 
 exports.updateCourse = asyncHandler(async (req, res, next) => {
@@ -129,8 +129,11 @@ exports.deleteCourse = asyncHandler(async (req, res, next) => {
     );
   }
 
-  //update course
-  await course.remove();
+  //delete course
+  // await course.remove();
+  //remove() is now deprecated
+
+  await course.deleteOne();
 
   res.status(200).json({
     success: true,
