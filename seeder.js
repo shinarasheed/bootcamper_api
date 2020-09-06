@@ -7,7 +7,7 @@ const dotenv = require("dotenv");
 dotenv.config({ path: "./config/config.env" });
 
 //load models
-const Bootcamp = require("./models/Bookcamp");
+const Bootcamp = require("./models/Bootcamp");
 
 //course
 
