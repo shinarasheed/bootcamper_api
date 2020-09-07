@@ -9,8 +9,6 @@ const asyncHandler = require("../middleware/async");
 exports.register = asyncHandler(async (req, res, next) => {
   const { name, email, password, role } = req.body;
 
-  console.log(req);
-
   //create user
   //we are not checking if the user aready exist here
   //we already said the name must be unique in the User Model
@@ -74,3 +72,16 @@ const sendTokenResponse = (user, statusCode, res) => {
     .cookie("token", token, options)
     .json({ success: true, token });
 };
+
+//THIS IS THE ROUTE WE HIT EVERYTIME OUR APP LOADS
+
+//@desc  Ger current logged in user
+//@route  POST /api/v1/auth/me
+//@acess  Private
+
+//I AM TIRED OF THE ASSYNCHANDLER AND ERRORRESPONSE
+exports.getMe = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.user.id);
+
+  res.status(200).json({ success: true, data: user });
+});
