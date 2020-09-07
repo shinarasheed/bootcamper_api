@@ -9,6 +9,8 @@ const asyncHandler = require("../middleware/async");
 exports.register = asyncHandler(async (req, res, next) => {
   const { name, email, password, role } = req.body;
 
+  console.log(req);
+
   //create user
   //we are not checking if the user aready exist here
   //we already said the name must be unique in the User Model
