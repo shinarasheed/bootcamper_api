@@ -48,7 +48,14 @@ UserSchema.pre("save", async function (next) {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
+//match user entered password with hashed password
+
+UserSchema.methods.matchPassword = async function (enterendPassword) {
+  return await bcrypt.compare(enterendPassword, this.password);
+};
+
 // Sign JWT and return
+//we can then decode the token return and identify a user based on it's token
 UserSchema.methods.getSignedJwtToken = function () {
   return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE,
