@@ -19,15 +19,7 @@ exports.register = asyncHandler(async (req, res, next) => {
     role,
   });
 
-  //create token
-
-  // the methods are called on the user not User. a static is called on User
-  const token = user.getSignedJwtToken();
-
-  res.status(200).json({
-    success: true,
-    token,
-  });
+  sendTokenResponse(user, 200, res);
 });
 
 //@desc  Login user
@@ -56,11 +48,27 @@ exports.login = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse("Invalid credentials", 401));
   }
 
-  // the methods are called on the user not User. a static is called on User
+  sendTokenResponse(user, 200, res);
+});
+
+//INSTEAD OF JUST SENDING A TOKEN. WE ARE NOW SENDING A COOKIE WITH A TOKEN IN IT
+// Get token from model, create cookie and send response
+const sendTokenResponse = (user, statusCode, res) => {
+  //create token
   const token = user.getSignedJwtToken();
 
-  res.status(200).json({
-    success: true,
-    token,
-  });
-});
+  const options = {
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true,
+  };
+
+  if (process.env.NODE_ENV === "production") {
+    options.secure = true;
+  }
+  res
+    .status(statusCode)
+    .cookie("token", token, options)
+    .json({ success: true, token });
+};
