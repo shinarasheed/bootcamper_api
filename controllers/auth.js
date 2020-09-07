@@ -17,7 +17,13 @@ exports.register = asyncHandler(async (req, res, next) => {
     role,
   });
 
+  //create token
+
+  // the methods are called on the user not User. a static is called on User
+  const token = user.getSignedJwtToken();
+
   res.status(200).json({
     success: true,
+    token,
   });
 });
