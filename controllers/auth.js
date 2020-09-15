@@ -75,7 +75,7 @@ const sendTokenResponse = (user, statusCode, res) => {
 
 //THIS IS THE ROUTE WE HIT EVERYTIME OUR APP LOADS
 
-//@desc  Ger current logged in user
+//@desc  Get current logged in user
 //@route  POST /api/v1/auth/me
 //@acess  Private
 
@@ -84,4 +84,14 @@ exports.getMe = asyncHandler(async (req, res, next) => {
   const user = await User.findById(req.user.id);
 
   res.status(200).json({ success: true, data: user });
+});
+
+//@desc  Get all users
+//@route  GET /api/v1/auth/me
+//@acess  Private
+
+//THIS IS FOR ME
+exports.getAll = asyncHandler(async (req, res, next) => {
+  const users = await User.find();
+  res.status(200).json({ success: true, count: users.length, data: users });
 });
