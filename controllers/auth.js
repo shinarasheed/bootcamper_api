@@ -51,8 +51,51 @@ exports.login = asyncHandler(async (req, res, next) => {
   sendTokenResponse(user, 200, res);
 });
 
+//THIS IS THE ROUTE WE HIT EVERYTIME OUR APP LOADS
+
+//@desc  Get current logged in user
+//@route  POST /api/v1/auth/me
+//@acess  Private
+
+//I AM TIRED OF THE ASSYNCHANDLER AND ERRORRESPONSE
+exports.getMe = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.user.id);
+
+  res.status(200).json({ success: true, data: user });
+});
+
+//@desc  Forgot password
+//@route  POST /api/v1/auth/forgotpassword
+//@acess  Private
+
+exports.forgotPassword = asyncHandler(async (req, res, next) => {
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return next(new ErrorResponse("There is no user with that email", 404));
+  }
+
+  //Get reset token
+  user.getResetPasswordToken();
+
+  await user.save({ validateBeforeSave: false });
+
+  res.status(200).json({ success: true, data: user });
+});
+
+//@desc  Get all users
+//@route  GET /api/v1/auth/me
+//@acess  Private
+
+//THIS IS FOR ME
+exports.getAll = asyncHandler(async (req, res, next) => {
+  const users = await User.find();
+  res.status(200).json({ success: true, count: users.length, data: users });
+});
+
 //INSTEAD OF JUST SENDING A TOKEN. WE ARE NOW SENDING A COOKIE WITH A TOKEN IN IT
 // Get token from model, create cookie and send response
+
+//WHY SEND THE TOKEN IN A COOKIE
 const sendTokenResponse = (user, statusCode, res) => {
   //create token
   const token = user.getSignedJwtToken();
@@ -67,31 +110,14 @@ const sendTokenResponse = (user, statusCode, res) => {
   if (process.env.NODE_ENV === "production") {
     options.secure = true;
   }
+
+  //we can decide to use the token in th cookie on the client side
+  //or just use the token being sent in res.json()
   res
     .status(statusCode)
+    //'token':name
+    //token:value
+    //options:options
     .cookie("token", token, options)
     .json({ success: true, token });
 };
-
-//THIS IS THE ROUTE WE HIT EVERYTIME OUR APP LOADS
-
-//@desc  Get current logged in user
-//@route  POST /api/v1/auth/me
-//@acess  Private
-
-//I AM TIRED OF THE ASSYNCHANDLER AND ERRORRESPONSE
-exports.getMe = asyncHandler(async (req, res, next) => {
-  const user = await User.findById(req.user.id);
-
-  res.status(200).json({ success: true, data: user });
-});
-
-//@desc  Get all users
-//@route  GET /api/v1/auth/me
-//@acess  Private
-
-//THIS IS FOR ME
-exports.getAll = asyncHandler(async (req, res, next) => {
-  const users = await User.find();
-  res.status(200).json({ success: true, count: users.length, data: users });
-});

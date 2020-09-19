@@ -31,11 +31,9 @@ exports.getBootcamp = asyncHandler(async (req, res, next) => {
 //@route  POST /api/v1/bootcamps
 //@acess  Private
 exports.createBootcamp = asyncHandler(async (req, res, next) => {
-  //Add bootcamp user to req.body
   req.body.user = req.user.id;
 
   //check for published bootcamp. a publisher can only add one bootcamp
-
   const publishedBootcamp = await Bootcamp.findOne({ user: req.user.id });
 
   //if the user is not an admin. they can only add one
@@ -65,6 +63,7 @@ exports.updateBootcamp = asyncHandler(async (req, res, next) => {
 
   //check if user is bootcamp owner
   //always convert the object id to a string
+  //an admin can do anything
   if (bootcamp.user.toString() !== req.user.id && req.user.role !== "admin") {
     return next(
       new ErrorResponse(

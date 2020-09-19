@@ -51,7 +51,7 @@ exports.getCourse = asyncHandler(async (req, res, next) => {
 //@acess  Private
 exports.addCourse = asyncHandler(async (req, res, next) => {
   req.body.bootcamp = req.params.bootcampId;
-  // req.body.user = req.user.id;
+  req.body.user = req.user.id;
 
   const bootcamp = await Bootcamp.findById(req.params.bootcampId);
 
@@ -64,15 +64,15 @@ exports.addCourse = asyncHandler(async (req, res, next) => {
     );
   }
 
-  // but shouldn't we add that a publisher can also create courses?
-  // if (bootcamp.user.toString() !== req.user.id) {
-  //   return next(
-  //     new ErrorResponse(
-  //       `User ${req.params.id} is not authorized to add a course to ${bootcamp._id} `,
-  //       401
-  //     )
-  //   );
-  // }
+  if (bootcamp.user.toString() !== req.user.id && req.user.role !== "admin") {
+    return next(
+      new ErrorResponse(
+        `User ${req.user.id} is not authorized to add a course to this bootcamp `,
+        401
+      )
+    );
+  }
+
   //create a new course
   const course = await Course.create(req.body);
 
@@ -87,7 +87,10 @@ exports.addCourse = asyncHandler(async (req, res, next) => {
 //@acess  Private
 
 exports.updateCourse = asyncHandler(async (req, res, next) => {
-  // why do this line. why not just jump to  findByIdAndUpdate()
+  //please always use this pattern for update
+  // if you do findByIdAndUpdate() .it will wont work
+  //becuase if the course does not exist what does it want to update
+  // so check if the course exist first
   let course = await Course.findById(req.params.id);
 
   if (!course) {
@@ -95,6 +98,15 @@ exports.updateCourse = asyncHandler(async (req, res, next) => {
       new ErrorResponse(
         `No course with the id of ${req.params.bootcampId}`,
         404
+      )
+    );
+  }
+
+  if (bootcamp.user.toString() !== req.user.id && req.user.role !== "admin") {
+    return next(
+      new ErrorResponse(
+        `User ${req.user.id} is not authorized to update this course`,
+        401
       )
     );
   }
@@ -127,11 +139,20 @@ exports.deleteCourse = asyncHandler(async (req, res, next) => {
     );
   }
 
-  //delete course
-  // await course.remove();
-  //remove() is now deprecated
+  if (bootcamp.user.toString() !== req.user.id && req.user.role !== "admin") {
+    return next(
+      new ErrorResponse(
+        `User ${req.user.id} is not authorized to delete this course `,
+        401
+      )
+    );
+  }
 
-  await course.deleteOne();
+  await course.remove();
+
+  // or
+
+  // await Course.deleteOne(course);
 
   res.status(200).json({
     success: true,

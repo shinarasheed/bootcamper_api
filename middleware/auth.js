@@ -30,8 +30,6 @@ exports.protect = asyncHandler(async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // req.user will be a object id
-    //and this will always be the login user
     req.user = await User.findById(decoded.id);
 
     next();
@@ -42,12 +40,14 @@ exports.protect = asyncHandler(async (req, res, next) => {
 });
 
 //Grant access to specific roles
+//VERY SIMPLE THAN APPEAR
+//only admins and publishers can create bootcamps and courses etc
 exports.authorize = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
       return next(
         new ErrorResponse(
-          `User role ${req.user.role} is not authorized to access this route`,
+          `User role ${req.user.role} is not authorized to perform this action`,
           403
         )
       );
