@@ -105,6 +105,8 @@ const BootcampSchema = new mongoose.Schema(
       required: true,
     },
   },
+
+  //this line is very important to reverse populate
   {
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
@@ -150,11 +152,11 @@ BootcampSchema.pre("remove", async function (next) {
 });
 
 // Reverse populate with virtuals
-// we we want is an array of courses for each bootcamp
+// what we want is an array of courses for each bootcamp
 
 BootcampSchema.virtual("courses", {
   //brad used Course. but it didnt work for me
-  ref: "course",
+  ref: "Course",
   localField: "_id",
   foreignField: "bootcamp",
   justOne: false,

@@ -23,6 +23,8 @@ mongoose.connect(process.env.MONGO_URI, {
 });
 
 //Read JSON files
+//JSON.parse converts a json object to a javascript object
+//JSON.stringify() does the opposite
 const bootcamps = JSON.parse(
   fs.readFileSync(`${__dirname}/_data/bootcamps.json`, "utf-8")
 );
@@ -43,6 +45,7 @@ const importData = async () => {
 
     console.log("Data Imported...".green.inverse);
     //exit from the process
+    //why do i have to exit from the process
     process.exit(1);
   } catch (error) {
     console.log(error);

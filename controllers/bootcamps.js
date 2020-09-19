@@ -3,6 +3,7 @@ const Bootcamp = require("../models/Bootcamp");
 const ErrorResponse = require("../utils/errorResponse");
 const asyncHandler = require("../middleware/async");
 const geocoder = require("../utils/geocoder");
+const { raw } = require("express");
 
 //@desc   Get all bootcamps
 //@route  GET /api/v1/bootcamps
@@ -54,16 +55,30 @@ exports.createBootcamp = asyncHandler(async (req, res, next) => {
 //@route  PUT /api/v1/bootcamps/:id
 //@acess  Private
 exports.updateBootcamp = asyncHandler(async (req, res, next) => {
-  const bootcamp = await Bootcamp.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
+  let bootcamp = await Bootcamp.findById(req.params.id);
 
   if (!bootcamp) {
     return next(
       new ErrorResponse(`Bootcamp not found with id of ${req.params.id}`, 404)
     );
   }
+
+  //check if user is bootcamp owner
+  //always convert the object id to a string
+  if (bootcamp.user.toString() !== req.user.id && req.user.role !== "admin") {
+    return next(
+      new ErrorResponse(
+        `User ${req.params.id} is not authorized to update this bootcamp `,
+        401
+      )
+    );
+  }
+
+  bootcamp = await Bootcamp.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
+
   res.status(200).json({ sucess: true, data: bootcamp });
 });
 
@@ -79,7 +94,16 @@ exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
     );
   }
 
-  //we could have just used findByIdAndDelete
+  //always convert the object id to a string
+  if (bootcamp.user.toString() !== req.user.id && req.user.role !== "admin") {
+    return next(
+      new ErrorResponse(
+        `User ${req.params.id} is not authorized to delete this bootcamp `,
+        401
+      )
+    );
+  }
+
   //we did this because of the cascade thing we are doing in the bootcamp model
   bootcamp.remove();
 
@@ -111,6 +135,8 @@ exports.getBookcampsInRadius = asyncHandler(async (req, res, next) => {
 //@desc   Upload photo for bootcamp
 //@route  PUT /api/v1/bootcamps/:id/photo
 //@acess  Private
+
+//THIS IS EASIER THAN IT APPEARS
 exports.bootcampPhotoUpload = asyncHandler(async (req, res, next) => {
   const bootcamp = await Bootcamp.findById(req.params.id);
 
@@ -120,12 +146,24 @@ exports.bootcampPhotoUpload = asyncHandler(async (req, res, next) => {
     );
   }
 
+  //check if user is bootcamp owner
+  //always convert the object id to a string
+  if (bootcamp.user.toString() !== req.user.id && req.user.role !== "admin") {
+    return next(
+      new ErrorResponse(
+        `User ${req.params.id} is not authorized to update this bootcamp `,
+        401
+      )
+    );
+  }
+
   //if no file is selected
   if (!req.files) {
     return next(new ErrorResponse(`Please upload a file `, 404));
   }
 
   const file = req.files.file;
+  // i thought this should be req.files[0]
 
   //make sure the image is a photo
   if (!file.mimetype.startsWith("image")) {
@@ -145,6 +183,7 @@ exports.bootcampPhotoUpload = asyncHandler(async (req, res, next) => {
   //rename the file name to a custom name
   file.name = `photo_${bootcamp._id}${path.parse(file.name).ext}`;
 
+  //move to cloudinary or AWS S2 and save the response in the bootcamp
   file.mv(`${process.env.FILE_UPLOAD_PATH}/${file.name}`, async (err) => {
     if (err) {
       console.error(err);

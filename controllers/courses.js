@@ -2,7 +2,6 @@ const ErrorResponse = require("../utils/errorResponse");
 const asyncHandler = require("../middleware/async");
 const Course = require("../models/Course");
 const Bootcamp = require("../models/Bootcamp");
-const { findByIdAndUpdate } = require("../models/Course");
 
 //@desc   Get courses
 //@route  GET /api/v1/courses
@@ -10,6 +9,7 @@ const { findByIdAndUpdate } = require("../models/Course");
 //@acess  Public
 
 exports.getCourses = asyncHandler(async (req, res, next) => {
+  //this will get the course/courses for a bootcamp
   if (req.params.bootcampId) {
     const courses = await Course.find({ bootcamp: req.params.bootcampId });
 
@@ -18,6 +18,8 @@ exports.getCourses = asyncHandler(async (req, res, next) => {
       count: courses.length,
       data: courses,
     });
+
+    //else get all courses
   } else {
     // i dont understand again
     res.status(200).json(res.advancedResults);
@@ -27,7 +29,6 @@ exports.getCourses = asyncHandler(async (req, res, next) => {
 //@desc   Get a single courses
 //@route  GET /api/v1/courses/:id
 //@acess  Public
-
 exports.getCourse = asyncHandler(async (req, res, next) => {
   const course = await Course.findById(req.params.id).populate({
     path: "bootcamp",
@@ -48,9 +49,9 @@ exports.getCourse = asyncHandler(async (req, res, next) => {
 //@desc   POST add a course
 //@route  POST /api/v1/bootcamps/:bootcampId/courses
 //@acess  Private
-
 exports.addCourse = asyncHandler(async (req, res, next) => {
   req.body.bootcamp = req.params.bootcampId;
+  // req.body.user = req.user.id;
 
   const bootcamp = await Bootcamp.findById(req.params.bootcampId);
 
@@ -63,6 +64,15 @@ exports.addCourse = asyncHandler(async (req, res, next) => {
     );
   }
 
+  // but shouldn't we add that a publisher can also create courses?
+  // if (bootcamp.user.toString() !== req.user.id) {
+  //   return next(
+  //     new ErrorResponse(
+  //       `User ${req.params.id} is not authorized to add a course to ${bootcamp._id} `,
+  //       401
+  //     )
+  //   );
+  // }
   //create a new course
   const course = await Course.create(req.body);
 

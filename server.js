@@ -46,7 +46,7 @@ app.use("/api/v1/auth", users);
 //error handler middleware
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 
 const server = app.listen(
   PORT,
