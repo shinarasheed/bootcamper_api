@@ -2,6 +2,7 @@ const User = require("../models/User");
 const ErrorResponse = require("../utils/errorResponse");
 const asyncHandler = require("../middleware/async");
 const sendEmail = require("../utils/sendEmail");
+const crypto = require("crypto");
 
 //@desc  Register user
 //@route  POST /api/v1/auth/register
@@ -81,14 +82,9 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
 
   //create reset url
-  // const resetUrl = `${req.protocol}://${req.get(
-  //   "host"
-  // )}/api/v1/auth/resetpassword/${resetToken}`;
-
-  //create reset url
   const resetUrl = `${req.protocol}://${req.get(
     "host"
-  )}/api/v1/resetpassword/${resetToken}`;
+  )}/api/v1/auth/resetpassword/${resetToken}`;
 
   const message = `You are recieving this request because you requested for a password reset. please make a request to: \n ${resetUrl} to reset your password
   `;
@@ -112,14 +108,52 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
   }
 });
 
-//@desc  Get all users
-//@route  GET /api/v1/auth/me
-//@acess  Private
+exports.getMe = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.user.id);
 
-//THIS IS FOR ME
+  res.status(200).json({ success: true, data: user });
+});
+
 exports.getAll = asyncHandler(async (req, res, next) => {
   const users = await User.find();
+
   res.status(200).json({ success: true, count: users.length, data: users });
+});
+
+//@desc  Reset password
+//@route  PUT /api/v1/auth/resetpassword/:resettoken
+//@acess  Private
+
+//THIS IS SO EASY TO IMPLEMENT ON FRONTEND
+//CREATE RESET PASSWORD SCREEN
+//WITH route like baseURl/resetpassword/:resettoken
+exports.resetPassword = asyncHandler(async (req, res, next) => {
+  //get hashed token
+
+  const resetPasswordToken = crypto
+    .createHash("sha256")
+    .update(req.params.resettoken)
+    .digest("hex");
+
+  //find the user by resetPasswordToken
+  const user = await User.findOne({
+    resetPasswordToken: resetPasswordToken,
+    resetPasswordExpire: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    return next(new ErrorResponse("Invalid token", 400));
+  }
+
+  //set new password
+  //set the user password to the password they are sending
+  user.password = req.body.password;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
+  await user.save();
+
+  //send the token to log them in
+  sendTokenResponse(user, 200, res);
 });
 
 //INSTEAD OF JUST SENDING A TOKEN. WE ARE NOW SENDING A COOKIE WITH A TOKEN IN IT
@@ -145,9 +179,6 @@ const sendTokenResponse = (user, statusCode, res) => {
   //or just use the token being sent in res.json()
   res
     .status(statusCode)
-    //'token':name
-    //token:value
-    //options:options
     .cookie("token", token, options)
     .json({ success: true, token });
 };
