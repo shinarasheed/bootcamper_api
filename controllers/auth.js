@@ -120,6 +120,38 @@ exports.getAll = asyncHandler(async (req, res, next) => {
   res.status(200).json({ success: true, count: users.length, data: users });
 });
 
+exports.updateDetails = asyncHandler(async (req, res, next) => {
+  //these are the only field we want a user to be able to update
+  const fieldsToUpdate = {
+    name: req.body.name,
+    email: req.body.email,
+  };
+
+  const user = await User.findByIdAndUpdate(req.user.id, fieldsToUpdate, {
+    new: true,
+    runValidators: true,
+  });
+
+  res.status(200).json({ success: true, data: user });
+});
+
+exports.updatePassword = asyncHandler(async (req, res, next) => {
+  //get the user with his password. password is select false in our model
+  const user = await User.findById(req.user.id).select("+password");
+
+  //check current password
+  const isMatch = await user.matchPassword(req.body.currentPassword);
+
+  if (!isMatch) {
+    return next(new ErrorResponse("your current password is incorrect", 401));
+  }
+
+  user.password = req.body.newPassword;
+  await user.save();
+
+  sendTokenResponse(user, 200, res);
+});
+
 //@desc  Reset password
 //@route  PUT /api/v1/auth/resetpassword/:resettoken
 //@acess  Private
