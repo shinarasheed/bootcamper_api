@@ -53,13 +53,25 @@ exports.login = asyncHandler(async (req, res, next) => {
   sendTokenResponse(user, 200, res);
 });
 
-//THIS IS THE ROUTE WE HIT EVERYTIME OUR APP LOADS
+//@desc   Log out user / clear cokkie
+//@route  POST /api/v1/auth/log
+//@acess  Private
+
+//THIS WORKS BY CLEARING THE COOKIE
+//WHEN WE HAVE OUR TOKEN IN A COKKIE
+exports.logout = asyncHandler(async (req, res, next) => {
+  res.cookie("token", "none", {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+  });
+
+  res.status(200).json({ success: true, data: {} });
+});
 
 //@desc  Get current logged in user
 //@route  POST /api/v1/auth/me
 //@acess  Private
 
-//I AM TIRED OF THE ASSYNCHANDLER AND ERRORRESPONSE
 exports.getMe = asyncHandler(async (req, res, next) => {
   const user = await User.findById(req.user.id);
 
